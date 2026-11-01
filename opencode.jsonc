@@ -1,0 +1,75 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Guardrails do laboratório. SECURITY.md é carregado em toda sessão.
+  "instructions": ["SECURITY.md"],
+
+  "default_agent": "orchestrator",
+
+  "permissions": [
+    // Tudo que executa pede aprovação, exceto leitura/reconhecimento.
+    { "action": "shell", "resource": "*", "effect": "ask" },
+
+    { "action": "shell", "resource": "ls *", "effect": "allow" },
+    { "action": "shell", "resource": "find *", "effect": "allow" },
+    { "action": "shell", "resource": "tree *", "effect": "allow" },
+    { "action": "shell", "resource": "cat *", "effect": "allow" },
+    { "action": "shell", "resource": "head *", "effect": "allow" },
+    { "action": "shell", "resource": "tail *", "effect": "allow" },
+    { "action": "shell", "resource": "wc *", "effect": "allow" },
+    { "action": "shell", "resource": "grep *", "effect": "allow" },
+    { "action": "shell", "resource": "jq *", "effect": "allow" },
+    { "action": "shell", "resource": "file *", "effect": "allow" },
+    { "action": "shell", "resource": "strings *", "effect": "allow" },
+    { "action": "shell", "resource": "sha256sum *", "effect": "allow" },
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git show *", "effect": "allow" },
+    { "action": "shell", "resource": "git add *", "effect": "allow" },
+
+    // Push é deliberado: artefato de investigação não sobe sem revisão.
+    { "action": "shell", "resource": "git push *", "effect": "ask" },
+
+    // Bloqueios duros.
+    { "action": "shell", "resource": "sudo *", "effect": "deny" },
+    { "action": "shell", "resource": "su *", "effect": "deny" },
+    { "action": "shell", "resource": "dd *", "effect": "deny" },
+    { "action": "shell", "resource": "mkfs*", "effect": "deny" },
+    { "action": "shell", "resource": "shutdown *", "effect": "deny" },
+    { "action": "shell", "resource": "reboot *", "effect": "deny" },
+    { "action": "shell", "resource": "iptables *", "effect": "deny" },
+    { "action": "shell", "resource": "ufw *", "effect": "deny" },
+    { "action": "shell", "resource": "git push --force*", "effect": "deny" },
+
+    // Fora do repositório: sempre perguntar (alvos vivem fora daqui).
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+
+    // Segredos nunca são lidos silenciosamente.
+    { "action": "read", "resource": "*.env", "effect": "ask" },
+    { "action": "read", "resource": "*.env.*", "effect": "ask" },
+    { "action": "read", "resource": "*.pem", "effect": "ask" },
+    { "action": "read", "resource": "*.key", "effect": "ask" }
+  ],
+
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@latest",
+          "--headless",
+          "--isolated"
+        ]
+      }
+    }
+  },
+
+  "formatter": true,
+
+  "watcher": {
+    "ignore": ["node_modules/**", "dist/**", "evidence/tmp/**"]
+  }
+}

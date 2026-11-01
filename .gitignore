@@ -1,0 +1,45 @@
+# Dependências e build
+node_modules/
+dist/
+build/
+out/
+coverage/
+.venv/
+__pycache__/
+*.pyc
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Segredos — nunca versionar
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Artefatos brutos de análise: grandes demais para o Git.
+# O que fica versionado é o hash em evidence/hashes/manifest.json.
+evidence/tmp/
+evidence/**/*.bin
+evidence/**/*.raw
+evidence/**/*.img
+evidence/**/*.fw
+evidence/**/*.elf
+evidence/**/*.so
+evidence/**/*.dll
+evidence/**/*.exe
+evidence/**/*.zip
+evidence/**/*.tar
+evidence/**/*.tar.gz
+evidence/**/*.7z
+evidence/**/*.har
+evidence/**/*.pcap
+evidence/**/*.pcapng
+
+# Exceção: relatórios e logs de texto continuam versionados.
+!evidence/logs/*.md
+!evidence/logs/*.json
