@@ -18,6 +18,7 @@ validar conclusão e reconstruir de forma independente**.
 | [MCP.md](MCP.md) | Ferramentas e integrações |
 | [SECURITY.md](SECURITY.md) | Autorização, isolamento e guardrails |
 | [ROADMAP.md](ROADMAP.md) | Implementação em 30 dias |
+| [STATUS.md](STATUS.md) | **Ponto de retomada** — estado atual e próxima ação |
 
 ## Como usar
 

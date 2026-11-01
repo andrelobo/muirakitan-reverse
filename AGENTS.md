@@ -5,6 +5,10 @@ qualquer item abaixo invalida o trabalho produzido.
 
 Leia também: [METHODOLOGY.md](METHODOLOGY.md) e [SECURITY.md](SECURITY.md).
 
+**Ao abrir o projeto, leia [STATUS.md](STATUS.md) primeiro.** Ele diz onde a
+investigação parou, o que está pendente e qual a próxima ação. Atualize-o ao fim
+de cada sessão.
+
 ---
 
 ## 1. Autorização antes de qualquer acesso
