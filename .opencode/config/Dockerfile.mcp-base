@@ -1,0 +1,58 @@
+# Muirakitan RE - Base MCP Sandbox Image
+# Ubuntu 22.04 based, minimal installation with common utilities
+
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install base utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    wget \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    jq \
+    unzip \
+    tar \
+    xz-utils \
+    p7zip-full \
+    binutils \
+    file \
+    xxd \
+    hexdump \
+    strace \
+    ltrace \
+    net-tools \
+    iproute2 \
+    dnsutils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20 LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Yarn
+RUN npm install -g yarn
+
+# Create non-root user
+RUN useradd -m -s /bin/bash muirakitan && \
+    echo "muirakitan ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Create working directories
+RUN mkdir -p /sandbox/temp /sandbox/binaries /sandbox/firmware /evidence/hash-registros && \
+    chown -R muirakitan:muirakitan /sandbox /evidence
+
+# Switch to non-root user
+USER muirakitan
+WORKDIR /sandbox
+
+# Default command
+CMD ["/bin/bash"]

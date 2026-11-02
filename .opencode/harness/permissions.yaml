@@ -1,0 +1,488 @@
+# Muirakitan RE - Harness Permissions Policy
+# Defines tool permissions, timeouts, and resource limits per RE stage
+
+version: "1.0"
+
+# Global settings
+global:
+  hash_algorithm: "sha256"
+  hash_required: true
+  evidence_dir: "/evidence"
+  sandbox_base_dir: "/sandbox"
+  max_concurrent_tools: 2
+  default_timeout_minutes: 30
+  log_level: "INFO"
+
+# Stage-specific permissions
+stages:
+  RE-01-discovery:
+    name: "Discovery"
+    description: "Inventário tecnológico, pontos de entrada, fingerprinting de versões"
+    max_duration_minutes: 60
+    allowed_tools:
+      - git
+      - python
+      - playwright
+    tool_permissions:
+      git:
+        commands:
+          - "clone"
+          - "log"
+          - "show"
+          - "diff"
+          - "ls-files"
+          - "status"
+        read_only: true
+        allowed_paths:
+          - "/sandbox/**"
+        network_access:
+          - "github.com"
+          - "gitlab.com"
+          - "bitbucket.org"
+      python:
+        scripts:
+          - "extract_versions.py"
+          - "parse_config.py"
+          - "fingerprint_tech.py"
+          - "hash_calculator.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "toml"
+          - "re"
+          - "hashlib"
+          - "pathlib"
+          - "subprocess"
+          - "dataclasses"
+          - "typing"
+        network_access: []
+        filesystem:
+          read: ["/sandbox/**"]
+          write: ["/sandbox/temp/**", "/evidence/hash-registros/**"]
+      playwright:
+        actions:
+          - "goto"
+          - "click"
+          - "type"
+          - "screenshot"
+          - "wait_for_selector"
+          - "evaluate"
+        allowed_domains: []  # Defined in CONTEXT.md per project
+        max_pages: 10
+        max_actions_per_page: 20
+        headless: true
+        record_video: false
+        record_trace: true
+    resource_limits:
+      memory_mb: 1024
+      cpu_percent: 50
+      disk_mb: 2048
+    network_policy: "restricted"
+
+  RE-02-inspection:
+    name: "Inspection"
+    description: "Mapeamento de componentes, interfaces, contratos de API, modelo de dados"
+    max_duration_minutes: 120
+    allowed_tools:
+      - ghidra
+      - binwalk
+      - rizin
+      - python
+      - playwright
+    tool_permissions:
+      ghidra:
+        max_functions_per_call: 5000
+        max_binary_size_mb: 100
+        allowed_operations:
+          - "analyze"
+          - "decompile"
+          - "list_functions"
+          - "get_xrefs"
+          - "extract_strings"
+          - "get_function_signature"
+        output_formats:
+          - "c"
+          - "json"
+          - "xml"
+        timeout_minutes: 30
+      binwalk:
+        max_components_per_call: 50
+        max_firmware_size_mb: 500
+        allowed_operations:
+          - "scan"
+          - "extract"
+          - "entropy"
+          - "signature"
+        extract_to: "/sandbox/temp/extracted"
+        timeout_minutes: 10
+      rizin:
+        max_binary_size_mb: 100
+        allowed_commands:
+          - "aa"
+          - "afl"
+          - "axt"
+          - "pdf"
+          - "Izj"
+          - "iIj"
+          - "iej"
+          - "icj"
+        timeout_minutes: 20
+      python:
+        scripts:
+          - "parse_ghidra_output.py"
+          - "parse_binwalk_output.py"
+          - "parse_rizin_output.py"
+          - "generate_api_contracts.py"
+          - "extract_data_models.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "xml.etree.ElementTree"
+          - "re"
+          - "hashlib"
+          - "pathlib"
+          - "subprocess"
+          - "dataclasses"
+          - "typing"
+          - "collections"
+        network_access: []
+        filesystem:
+          read: ["/sandbox/**", "/evidence/**"]
+          write: ["/sandbox/temp/**", "/evidence/inspection/**"]
+      playwright:
+        actions:
+          - "goto"
+          - "click"
+          - "type"
+          - "screenshot"
+          - "wait_for_selector"
+          - "evaluate"
+          - "intercept_request"
+          - "intercept_response"
+          - "wait_for_load_state"
+        allowed_domains: []
+        max_pages: 20
+        max_actions_per_page: 50
+        headless: true
+        record_video: true
+        record_trace: true
+    resource_limits:
+      memory_mb: 4096
+      cpu_percent: 75
+      disk_mb: 5120
+    network_policy: "restricted"
+
+  RE-03-behavioral:
+    name: "Behavioral Analysis"
+    description: "Observação de fluxos de negócio, máquinas de estado, workflows"
+    max_duration_minutes: 90
+    allowed_tools:
+      - frida
+      - playwright
+      - python
+    tool_permissions:
+      frida:
+        max_session_minutes: 15
+        allowed_operations:
+          - "attach"
+          - "spawn"
+          - "enumerate_modules"
+          - "enumerate_functions"
+          - "interceptor_attach"
+          - "interceptor_replace"
+          - "trace"
+          - "stalker"
+        forbidden_operations:
+          - "memory_write"
+          - "code_injection"
+          - "bypass_anti_debug"
+          - "bypass_anti_tamper"
+        script_types:
+          - "observation"
+          - "logging"
+          - "tracing"
+        timeout_minutes: 15
+      playwright:
+        actions:
+          - "goto"
+          - "click"
+          - "type"
+          - "select_option"
+          - "check"
+          - "uncheck"
+          - "hover"
+          - "drag_and_drop"
+          - "screenshot"
+          - "wait_for_selector"
+          - "wait_for_load_state"
+          - "wait_for_response"
+          - "evaluate"
+          - "intercept_request"
+          - "intercept_response"
+          - "press"
+          - "keyboard"
+          - "mouse"
+        allowed_domains: []
+        max_pages: 30
+        max_actions_per_page: 100
+        headless: true
+        record_video: true
+        record_trace: true
+        test_scenarios:
+          - "happy_path"
+          - "edge_cases"
+          - "error_handling"
+          - "state_transitions"
+      python:
+        scripts:
+          - "analyze_frida_traces.py"
+          - "analyze_playwright_flows.py"
+          - "extract_business_rules.py"
+          - "build_state_machines.py"
+          - "generate_test_scenarios.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "re"
+          - "hashlib"
+          - "pathlib"
+          - "subprocess"
+          - "dataclasses"
+          - "typing"
+          - "collections"
+          - "itertools"
+          - "statistics"
+        network_access: []
+        filesystem:
+          read: ["/sandbox/**", "/evidence/**"]
+          write: ["/sandbox/temp/**", "/evidence/behavioral/**"]
+    resource_limits:
+      memory_mb: 3072
+      cpu_percent: 75
+      disk_mb: 4096
+    network_policy: "restricted"
+
+  RE-04-specification:
+    name: "Specification"
+    description: "Geração de especificações SDD, contratos OpenAPI, requisitos"
+    max_duration_minutes: 30
+    allowed_tools:
+      - python
+      - git
+    tool_permissions:
+      python:
+        scripts:
+          - "generate_openapi.py"
+          - "generate_requirements.py"
+          - "generate_architecture_docs.py"
+          - "generate_acceptance_criteria.py"
+          - "validate_specs.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "re"
+          - "hashlib"
+          - "pathlib"
+          - "dataclasses"
+          - "typing"
+          - "jinja2"
+          - "markdown"
+        network_access: []
+        filesystem:
+          read: ["/evidence/**"]
+          write: ["/evidence/specs/**", "/repo/specs/**"]
+      git:
+        commands:
+          - "add"
+          - "commit"
+          - "tag"
+          - "push"
+        allowed_paths:
+          - "/repo/specs/**"
+          - "/repo/docs/**"
+        read_only: false
+    resource_limits:
+      memory_mb: 1024
+      cpu_percent: 25
+      disk_mb: 1024
+    network_policy: "none"
+
+  RE-05-reconstruction:
+    name: "Reconstruction"
+    description: "Implementação alternativa baseada nas especificações"
+    max_duration_minutes: 180
+    allowed_tools:
+      - python
+      - git
+    tool_permissions:
+      python:
+        scripts:
+          - "scaffold_nestjs.py"
+          - "scaffold_react.py"
+          - "generate_models.py"
+          - "generate_services.py"
+          - "generate_controllers.py"
+          - "generate_tests.py"
+          - "run_tests.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "pathlib"
+          - "subprocess"
+          - "dataclasses"
+          - "typing"
+          - "jinja2"
+          - "shutil"
+        network_access:
+          - "registry.npmjs.org"
+          - "registry.yarnpkg.com"
+          - "docker.io"
+        filesystem:
+          read: ["/repo/specs/**", "/repo/docs/**"]
+          write: ["/repo/src/**", "/repo/tests/**", "/sandbox/temp/**"]
+      git:
+        commands:
+          - "add"
+          - "commit"
+          - "branch"
+          - "checkout"
+          - "push"
+        allowed_paths:
+          - "/repo/src/**"
+          - "/repo/tests/**"
+        read_only: false
+    resource_limits:
+      memory_mb: 4096
+      cpu_percent: 100
+      disk_mb: 10240
+    network_policy: "limited"
+
+  RE-06-validation:
+    name: "Validation"
+    description: "Testes de equivalência, relatório de segurança, relatório executivo"
+    max_duration_minutes: 60
+    allowed_tools:
+      - playwright
+      - python
+      - git
+    tool_permissions:
+      playwright:
+        actions:
+          - "goto"
+          - "click"
+          - "type"
+          - "screenshot"
+          - "wait_for_selector"
+          - "wait_for_response"
+          - "evaluate"
+          - "expect"
+        allowed_domains: ["localhost", "127.0.0.1"]
+        max_pages: 10
+        max_actions_per_page: 50
+        headless: true
+        record_video: true
+        record_trace: true
+        test_mode: "equivalence"
+      python:
+        scripts:
+          - "run_equivalence_tests.py"
+          - "run_security_audit.py"
+          - "generate_hash_comparison.py"
+          - "generate_equivalence_report.py"
+          - "generate_security_report.py"
+          - "generate_executive_summary.py"
+        allowed_imports:
+          - "json"
+          - "yaml"
+          - "re"
+          - "hashlib"
+          - "pathlib"
+          - "subprocess"
+          - "dataclasses"
+          - "typing"
+          - "collections"
+          - "statistics"
+          - "jinja2"
+          - "markdown"
+        network_access: []
+        filesystem:
+          read: ["/repo/**", "/evidence/**"]
+          write: ["/repo/reports/**", "/evidence/validation/**"]
+      git:
+        commands:
+          - "add"
+          - "commit"
+          - "tag"
+          - "push"
+        allowed_paths:
+          - "/repo/reports/**"
+        read_only: false
+    resource_limits:
+      memory_mb: 2048
+      cpu_percent: 50
+      disk_mb: 2048
+    network_policy: "localhost_only"
+
+# Tool-specific global configurations
+tools:
+  ghidra:
+    image: "muirakitan/mcp-ghidra:latest"
+    project_dir: "/sandbox/ghidra-projects"
+    script_dir: "/sandbox/scripts/ghidra"
+    jvm_args: "-Xmx3g -Djava.awt.headless=true"
+
+  binwalk:
+    image: "muirakitan/mcp-binwalk:latest"
+    extract_dir: "/sandbox/temp/extracted"
+    signature_db: "/usr/local/lib/python3.10/dist-packages/binwalk/magic"
+
+  frida:
+    image: "muirakitan/mcp-frida:latest"
+    script_dir: "/sandbox/scripts/frida"
+    runtime: "v8"
+
+  rizin:
+    image: "muirakitan/mcp-rizin:latest"
+    config_dir: "/home/muirakitan/.config/rizin"
+
+  playwright:
+    image: "muirakitan/mcp-playwright:latest"
+    browser_path: "/sandbox/browsers"
+    trace_dir: "/evidence/playwright/traces"
+    video_dir: "/evidence/playwright/videos"
+    screenshot_dir: "/evidence/playwright/screenshots"
+
+  python:
+    image: "muirakitan/mcp-python:latest"
+    script_dir: "/sandbox/scripts/python"
+    venv_path: "/sandbox/venv"
+
+  git:
+    image: "muirakitan/mcp-git:latest"
+    repo_path: "/repo"
+    commit_template: "/repo/.gitmessage.txt"
+
+# Hash validation configuration
+hash_validation:
+  algorithm: "sha256"
+  verify_before_execution: true
+  verify_after_execution: true
+  store_hashes: true
+  hash_registry: "/evidence/hash-registros/registry.json"
+  fail_on_mismatch: true
+
+# Exception handling
+exceptions:
+  emergency_access:
+    enabled: false
+    requires_operator_approval: true
+    max_duration_minutes: 10
+    audit_log: "/evidence/exceptions/emergency_access.log"
+  hash_mismatch:
+    action: "abort_and_alert"
+    alert_operator: true
+    retry_count: 1
+  timeout:
+    action: "pause_and_summarize"
+    allow_continue: true
+    require_operator_decision: true

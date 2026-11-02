@@ -1,0 +1,110 @@
+# Muirakitan RE - Python Processing Sandbox
+# Based on mcp-base with scientific and analysis Python packages
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install additional system dependencies for Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libatlas-base-dev \
+    gfortran \
+    libfreetype6-dev \
+    libpng-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install core data science and analysis packages
+RUN pip3 install --no-cache-dir \
+    numpy \
+    pandas \
+    scipy \
+    matplotlib \
+    seaborn \
+    plotly \
+    requests \
+    aiohttp \
+    httpx \
+    pyyaml \
+    toml \
+    jsonschema \
+    jinja2 \
+    rich \
+    typer \
+    pytest \
+    pytest-cov \
+    pytest-asyncio \
+    hypothesis \
+    pydantic \
+    pydantic-settings \
+    python-dotenv \
+    structlog \
+    loguru \
+    tqdm \
+    tenacity \
+    backoff \
+    prometheus-client \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-otlp
+
+# Install binary analysis Python packages
+RUN pip3 install --no-cache-dir \
+    capstone \
+    keystone-engine \
+    unicorn \
+    lief \
+    pefile \
+    elftools \
+    macholib \
+    construct \
+    pyelftools \
+    capstone \
+    keystone-engine \
+    unicorn
+
+# Install crypto and security packages
+RUN pip3 install --no-cache-dir \
+    cryptography \
+    pycryptodome \
+    hashlib \
+    hmac \
+    secrets \
+    passlib \
+    bcrypt \
+    argon2-cffi
+
+# Install web/API analysis packages
+RUN pip3 install --no-cache-dir \
+    openapi-spec-validator \
+    swagger-codegen \
+    requests-oauthlib \
+    oauthlib \
+    jwt \
+    python-jose
+
+# Install database packages
+RUN pip3 install --no-cache-dir \
+    sqlalchemy \
+    pymongo \
+    redis \
+    psycopg2-binary
+
+# Install report generation packages
+RUN pip3 install --no-cache-dir \
+    weasyprint \
+    reportlab \
+    fpdf2 \
+    markdown \
+    mkdocs \
+    mkdocs-material
+
+USER muirakitan
+
+WORKDIR /sandbox
+
+CMD ["/bin/bash"]

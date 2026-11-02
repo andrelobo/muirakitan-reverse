@@ -1,0 +1,59 @@
+# Muirakitan RE - Binwalk Firmware Extraction Sandbox
+# Based on mcp-base with Binwalk and firmware analysis tools
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Binwalk dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-dev \
+    python3-pip \
+    libmagic-dev \
+    build-essential \
+    zlib1g-dev \
+    liblzma-dev \
+    libbz2-dev \
+    libssl-dev \
+    sasl2-bin \
+    libsasl2-dev \
+    libldap2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Binwalk from source (latest)
+RUN pip3 install --no-cache-dir git+https://github.com/ReFirmLabs/binwalk.git
+
+# Install additional firmware analysis tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    squashfs-tools \
+    cramfsprogs \
+    jffs2-tools \
+    mtd-utils \
+    u-boot-tools \
+    device-tree-compiler \
+    dtc \
+    cpio \
+    gzip \
+    bzip2 \
+    xz-utils \
+    lzma \
+    lzop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages for firmware analysis
+RUN pip3 install --no-cache-dir \
+    firmware-analysis-toolkit \
+    jefferson \
+    sasquatch \
+    unlzma \
+    lzma \
+    pycrypto \
+    cryptography
+
+USER muirakitan
+
+WORKDIR /sandbox
+
+CMD ["/bin/bash"]

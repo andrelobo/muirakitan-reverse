@@ -1,0 +1,231 @@
+version: '3.8'
+
+services:
+  # Base MCP sandbox - shared base image for all tools
+  mcp-base:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp-base
+    image: muirakitan/mcp-base:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+      - MUIRAKITAN_HASH_ALGO=sha256
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=1G
+      - /sandbox/temp:exec,size=2G
+
+  # Ghidra analysis sandbox
+  mcp-ghidra:
+    build:
+      context: .
+      dockerfile: Dockerfile.ghidra
+    image: muirakitan/mcp-ghidra:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+      - GHIDRA_PROJECT_DIR=/sandbox/ghidra-projects
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=2G
+      - /sandbox/temp:exec,size=4G
+      - /sandbox/ghidra-projects:exec,size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+
+  # Binwalk firmware extraction sandbox
+  mcp-binwalk:
+    build:
+      context: .
+      dockerfile: Dockerfile.binwalk
+    image: muirakitan/mcp-binwalk:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=1G
+      - /sandbox/temp:exec,size=3G
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1'
+
+  # Frida instrumentation sandbox
+  mcp-frida:
+    build:
+      context: .
+      dockerfile: Dockerfile.frida
+    image: muirakitan/mcp-frida:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+    network_mode: "bridge"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=1G
+      - /sandbox/temp:exec,size=1G
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1'
+
+  # Rizin/Cutter static analysis sandbox
+  mcp-rizin:
+    build:
+      context: .
+      dockerfile: Dockerfile.rizin
+    image: muirakitan/mcp-rizin:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=1G
+      - /sandbox/temp:exec,size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1'
+
+  # Playwright web automation sandbox
+  mcp-playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    image: muirakitan/mcp-playwright:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+      - PLAYWRIGHT_BROWSERS_PATH=/sandbox/browsers
+    network_mode: "bridge"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=2G
+      - /sandbox/temp:exec,size=2G
+      - /sandbox/browsers:exec,size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+
+  # Python processing sandbox
+  mcp-python:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    image: muirakitan/mcp-python:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - ../sandbox:/sandbox:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/sandbox
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=1G
+      - /sandbox/temp:exec,size=1G
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Git versioning sandbox
+  mcp-git:
+    build:
+      context: .
+      dockerfile: Dockerfile.git
+    image: muirakitan/mcp-git:latest
+    volumes:
+      - ../evidence:/evidence:ro
+      - /home/lobo/Área de trabalho/KODE/muirakitan-reverse-engineering:/repo:rw
+    environment:
+      - MUIRAKITAN_SANDBOX_DIR=/repo
+      - MUIRAKITAN_EVIDENCE_DIR=/evidence
+      - MUIRAKITAN_REQUIRE_HASH=true
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp:exec,size=512M
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+networks:
+  default:
+    driver: bridge
+    enable_ipv6: false

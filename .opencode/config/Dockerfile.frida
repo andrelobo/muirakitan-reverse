@@ -1,0 +1,48 @@
+# Muirakitan RE - Frida Instrumentation Sandbox
+# Based on mcp-base with Frida and dynamic analysis tools
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Frida dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-dev \
+    python3-pip \
+    libffi-dev \
+    libssl-dev \
+    pkg-config \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Frida
+RUN pip3 install --no-cache-dir \
+    frida \
+    frida-tools \
+    objection
+
+# Install additional dynamic analysis tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gdb \
+    ltrace \
+    strace \
+    perf-tools-unstable \
+    linux-perf \
+    sysdig \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js packages for Frida scripts
+RUN npm install -g \
+    frida-compile \
+    @frida/frida-core
+
+USER muirakitan
+
+# Create Frida script directory
+RUN mkdir -p /sandbox/scripts/frida
+
+WORKDIR /sandbox
+
+CMD ["/bin/bash"]

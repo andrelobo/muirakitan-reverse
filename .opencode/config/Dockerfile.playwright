@@ -1,0 +1,51 @@
+# Muirakitan RE - Playwright Web Automation Sandbox
+# Based on mcp-base with Playwright and browsers
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PLAYWRIGHT_BROWSERS_PATH=/sandbox/browsers
+
+# Install Playwright dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libatspi2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright and browsers
+RUN npm install -g @playwright/test@latest && \
+    npx playwright install --with-deps chromium firefox webkit
+
+# Install additional Node.js packages for web analysis
+RUN npm install -g \
+    puppeteer \
+    @puppeteer/replay \
+    lighthouse \
+    sitespeed.io \
+    axe-core \
+    pa11y
+
+USER muirakitan
+
+# Create browser cache directory
+RUN mkdir -p /sandbox/browsers
+
+WORKDIR /sandbox
+
+CMD ["/bin/bash"]

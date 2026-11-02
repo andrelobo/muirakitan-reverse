@@ -1,0 +1,56 @@
+# Muirakitan RE - Rizin/Cutter Static Analysis Sandbox
+# Based on mcp-base with Rizin and Cutter
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Rizin dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    ninja-build \
+    meson \
+    pkg-config \
+    libzip-dev \
+    zlib1g-dev \
+    liblzma-dev \
+    libcapstone-dev \
+    libtree-sitter-dev \
+    libmagic-dev \
+    libxxhash-dev \
+    libuv1-dev \
+    libsodium-dev \
+    libgmp-dev \
+    libmpfr-dev \
+    libmpc-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rizin from source
+RUN cd /opt && \
+    git clone --depth 1 https://github.com/rizinorg/rizin && \
+    cd rizin && \
+    meson setup build --buildtype=release && \
+    ninja -C build install && \
+    ldconfig && \
+    cd / && rm -rf /opt/rizin
+
+# Install Cutter (GUI) - optional, headless mode
+# RUN pip3 install --no-cache-dir cutter
+
+# Install Python bindings
+RUN pip3 install --no-cache-dir rzpipe
+
+USER muirakitan
+
+WORKDIR /sandbox
+
+CMD ["/bin/bash"]

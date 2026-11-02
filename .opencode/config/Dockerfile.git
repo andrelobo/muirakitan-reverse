@@ -1,0 +1,44 @@
+# Muirakitan RE - Git Versioning Sandbox
+# Minimal image with Git and commit signing tools
+
+FROM muirakitan/mcp-base:latest
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Git and signing tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    gpg \
+    gpg-agent \
+    pinentry-curses \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Git LFS
+RUN curl -fsSL https://packagecloud.io/github/git-lfs/packages/debian/jammy/git-lfs_3.4.1_amd64.deb/download.deb -o /tmp/git-lfs.deb && \
+    dpkg -i /tmp/git-lfs.deb && \
+    rm /tmp/git-lfs.deb && \
+    git lfs install --system
+
+# Install conventional commit tools
+RUN npm install -g \
+    @commitlint/cli \
+    @commitlint/config-conventional \
+    commitizen \
+    cz-conventional-changelog \
+    conventional-changelog-cli \
+    standard-version
+
+USER muirakitan
+
+# Configure Git
+RUN git config --global user.name "Muirakitan RE Orchestrator" && \
+    git config --global user.email "orchestrator@muirakitan-re" && \
+    git config --global init.defaultBranch main && \
+    git config --global commit.gpgsign false && \
+    git config --global tag.gpgsign false
+
+WORKDIR /repo
+
+CMD ["/bin/bash"]
