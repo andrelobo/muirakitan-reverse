@@ -1,6 +1,6 @@
 # STATUS — ponto de retomada
 
-> Última atualização: **2026-11-01**
+> Última atualização: **2026-11-02**
 > Leia este arquivo primeiro ao abrir o projeto. Atualize-o ao fim de cada sessão.
 
 ---
@@ -14,10 +14,11 @@ validados. Nenhuma análise técnica foi executada ainda.
 | --- | --- |
 | Repositório | `github.com/andrelobo/muirakitan-reverse` |
 | Branch | `main`, sincronizada com `origin/main` |
-| Último commit | `b051ed4` — estrutura inicial |
+| Último commit | `5e360da` — infra do rascunho v1 recuperada |
 | Working tree | limpo |
 | Engajamento ativo | nenhum |
 | Autorização registrada | nenhuma (`evidence/authorization/` vazio) |
+| Rascunho v1 | incorporado (infra + `archive/v1-draft/`) e pasta antiga removida |
 
 ## 2. O que está pronto e verificado
 
@@ -34,6 +35,19 @@ Não é "escrito", é **verificado em execução**:
 - [x] Árvore `docs/ specs/ evidence/ src/ tests/` criada.
 - [x] 8 templates prontos (`templates/`).
 
+### Infra herdada do rascunho v1 (2026-11-02)
+
+Pasta `muirakitan-reverse-engineering/` era o rascunho anterior, sem Git. Antes
+de removê-la, todo o conteúdo foi incorporado e verificado byte a byte:
+
+- [x] `.opencode/config/` — `docker-compose.yml` + 8 Dockerfiles (ghidra,
+      binwalk, frida, rizin, playwright, python, git, mcp-base). **Ainda não
+      adaptados** — ver §3.
+- [x] `.opencode/harness/permissions.yaml` — política por etapa RE-01…RE-06
+      (schema próprio, não lido pelo OpenCode v2; serve de referência).
+- [x] `scripts/hash_calculator.py` — calculadora SHA-256 com `HashRecord`.
+- [x] `archive/v1-draft/` — os 7 documentos v1 na íntegra; **não normativos**.
+
 ## 3. O que NÃO está pronto
 
 | Item | Bloqueia | Observação |
@@ -43,6 +57,7 @@ Não é "escrito", é **verificado em execução**:
 | Frida | instrumentação dinâmica | ausente |
 | Rizin / Cutter | análise estática complementar | ausente |
 | Isolamento (VM) | gate de segurança §3 | `libvirtd` não configurado |
+| Compose/Dockerfiles v1 | Fase 2 (binário) | recuperados, mas com caminhos do layout antigo e montagem de `docker.sock` — adaptar antes de subir |
 | Alvo piloto | RE-01 em diante | não escolhido |
 | Wrappers MCP | autonomia de ferramentas | não iniciados |
 | `src/` e `tests/` | RE-05/06 | vazios (correto nesta fase) |
@@ -88,6 +103,10 @@ Ordem exata. Não pule para Ghidra antes de resolver disco e isolamento.
 1. **Liberar disco** — alvo: ≥ 15 GB livres. (ver §4)
 2. **Criar ambiente isolado** — Docker é o caminho mais curto aqui, já que o
    daemon funciona e libvirt não está configurado.
+   - ponto de partida: `.opencode/config/docker-compose.yml` (herdado do v1);
+   - corrigir `../evidence` → `../../evidence` e decidir sobre `sandbox/`;
+   - **remover** a montagem de `/var/run/docker.sock` (conflita com
+     `SECURITY.md` §3);
    - imagem base Linux, sem `--privileged`, sem `--network host`;
    - volume separado para artefatos do engajamento;
    - comando único de subir e destruir.
@@ -124,7 +143,9 @@ cd "/home/lobo/Área de trabalho/KODE/muirakitan-reverse"
 git status --short --branch          # deve estar limpo e sincronizado
 opencode mcp list                    # playwright deve aparecer conectado
 ./scripts/hash-manifest.sh           # manifesto deve regenerar sem erro
+python3 scripts/hash_calculator.py --help   # utilitário herdado do v1
 ls .opencode/agents/                 # 5 agentes
+ls .opencode/config/                 # compose + 8 Dockerfiles (não adaptados)
 ```
 
 ## 8. Como retomar

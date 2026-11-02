@@ -47,7 +47,9 @@ as etapas aos especialistas.
 .
 ├── .opencode/
 │   ├── agents/           # 5 agentes especializados
-│   └── skills/           # skills do laboratório
+│   ├── skills/           # skills do laboratório
+│   ├── config/           # compose + Dockerfiles (Fase 2, a adaptar)
+│   └── harness/          # política por etapa (referência v1)
 ├── docs/                 # saída por etapa
 │   ├── discovery/        # RE-01
 │   ├── architecture/     # RE-02
@@ -70,6 +72,9 @@ as etapas aos especialistas.
 
 `docs/` é por engajamento. Se o laboratório rodar vários projetos, cada um ganha
 um subdiretório com o nome do alvo.
+
+`archive/v1-draft/` guarda os documentos da primeira versão do projeto. Não é
+normativo; em caso de divergência, vale a raiz do repositório.
 
 ## Pré-requisitos
 
